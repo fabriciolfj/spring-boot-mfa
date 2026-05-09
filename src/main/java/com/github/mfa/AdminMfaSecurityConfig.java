@@ -20,16 +20,18 @@ public class AdminMfaSecurityConfig {
 
     @Bean
     @Order(1)
-    SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain adminSecurityFilterChain(HttpSecurity http,  ConsoleOttSender ottSender) throws Exception {
         AuthorizationManagerFactory<Object> mfa = AuthorizationManagerFactories.multiFactor()
                 .requireFactors(
                         FactorGrantedAuthority.PASSWORD_AUTHORITY,
-                        FactorGrantedAuthority.X509_AUTHORITY)
+                        FactorGrantedAuthority.OTT_AUTHORITY)
                 .build();
 
         http.securityMatcher("/admin/**")
                 .authorizeHttpRequests(auth ->auth.requestMatchers("/admin/**")
-                .access(mfa.hasRole("ADMIN")).anyRequest().authenticated()).formLogin(withDefaults());
+                .access(mfa.hasRole("ADMIN")).anyRequest().authenticated())
+                .formLogin(withDefaults())
+                .oneTimeTokenLogin(ott -> ott.tokenGenerationSuccessHandler(ottSender));
 
         return http.build();
     }

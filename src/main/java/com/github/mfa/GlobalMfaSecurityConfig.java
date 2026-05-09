@@ -16,19 +16,19 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @EnableMultiFactorAuthentication(
-        authorities = { FactorGrantedAuthority.PASSWORD_AUTHORITY, FactorGrantedAuthority.X509_AUTHORITY }
+        authorities = { FactorGrantedAuthority.PASSWORD_AUTHORITY, FactorGrantedAuthority.OTT_AUTHORITY }
 )
 public class GlobalMfaSecurityConfig {
 
     @Bean
     @Order(3)
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, ConsoleOttSender ottSender) throws Exception {
         http.securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public").permitAll()
+                        .requestMatchers("/public", "/login", "/login/ott", "/ott/generate").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(withDefaults())
-                .oneTimeTokenLogin(withDefaults());
+                .oneTimeTokenLogin(ott -> ott.tokenGenerationSuccessHandler(ottSender));
 
         return http.build();
     }
